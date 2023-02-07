@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
 import { REDIS_TAGS_KEYS } from "../../configs";
-import { RecordStatus } from "../../constant";
+import { RecordStatus, SortType } from "../../constant";
 import { ResponseBuilder } from "../../service";
 import { RedisService } from "../../service/redis";
 import { TagService } from "../tag/tag.service";
@@ -91,6 +91,36 @@ class PostController {
 
       return ResponseBuilder.send(res, {
         data: post,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getPosts(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { page, limit, tags: tagsInput, sortType = SortType.latest } = req.body;
+
+      const posts = await PostService.getByQuery({
+        page,
+        limit,
+        query: {
+          status: RecordStatus.active,
+          ...(tagsInput && {
+            tags: {
+              $elemMatch: {
+                $in: tagsInput,
+              },
+            },
+          }),
+        },
+        sort: {
+          createdAt: sortType === SortType.latest ? -1 : 1,
+        },
+      });
+
+      return ResponseBuilder.send(res, {
+        data: posts,
       });
     } catch (error) {
       next(error);

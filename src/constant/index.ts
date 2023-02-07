@@ -10,3 +10,8 @@ export const enum RequestType {
   params,
   headers,
 }
+
+export enum SortType {
+  latest,
+  oldest,
+}

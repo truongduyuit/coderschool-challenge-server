@@ -47,7 +47,7 @@ export class MongooseBaseService<IMongooseModel extends Document> {
     return (await this._mongooseModel.findOne(query)) as IMongooseModel;
   }
 
-  async getByQuery({ page, limit, select, sort, query }: IQuery): Promise<{
+  async getByQuery({ page = 0, limit = 10, select, sort, query }: IQuery): Promise<{
     records: IMongooseModel[];
     metadata: {
       totalPage: number;
@@ -70,9 +70,9 @@ export class MongooseBaseService<IMongooseModel extends Document> {
     return {
       records: docs as IMongooseModel[],
       metadata: {
-        totalPage: Math.ceil(count / limit),
+        totalPage: Math.ceil(count / +limit),
         totalRecord: count,
-        currentPage: page,
+        currentPage: +page,
         limit,
       },
     };
