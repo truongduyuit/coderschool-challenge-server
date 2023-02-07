@@ -99,11 +99,9 @@ class PostController {
 
   async getPosts(req: Request, res: Response, next: NextFunction) {
     try {
-      const { page, limit, tags: tagsInput, sortType = SortType.latest } = req.body;
+      const { page, limit, tags: tagsInput, sortType = SortType.latest } = req.query;
 
-      const posts = await PostService.getByQuery({
-        page,
-        limit,
+      const posts = await PostService.populate({
         query: {
           status: RecordStatus.active,
           ...(tagsInput && {
@@ -114,9 +112,15 @@ class PostController {
             },
           }),
         },
+        populate: {
+          path: "userInfo",
+          select: "email",
+        },
         sort: {
           createdAt: sortType === SortType.latest ? -1 : 1,
         },
+        ...(page && { page: +page }),
+        ...(limit && { limit: +limit }),
       });
 
       return ResponseBuilder.send(res, {
