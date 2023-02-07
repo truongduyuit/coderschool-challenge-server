@@ -1,4 +1,4 @@
-import { IsArray, IsEnum, IsNumberString, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsNumberString, IsOptional, ValidateIf } from "class-validator";
 import { SortType } from "../../../constant";
 
 export class GetPostsDto {
@@ -11,9 +11,8 @@ export class GetPostsDto {
   limit: number;
 
   @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  tags: string[];
+  @ValidateIf((o) => typeof o.tags === "string" || Array.isArray(o.tags))
+  tags: string | string[];
 
   @IsOptional()
   @IsEnum(SortType)

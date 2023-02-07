@@ -107,7 +107,7 @@ class PostController {
           ...(tagsInput && {
             tags: {
               $elemMatch: {
-                $in: tagsInput,
+                $in: typeof tagsInput === "string" ? [tagsInput] : tagsInput,
               },
             },
           }),
