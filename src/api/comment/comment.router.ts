@@ -10,7 +10,7 @@ const router = Router();
 
 router.post(
   "/",
-  Auth,
+  Auth(),
   Valid(CreateCommentDto, RequestType.body),
   commentMiddleware.createComment,
   commentController.createComment,

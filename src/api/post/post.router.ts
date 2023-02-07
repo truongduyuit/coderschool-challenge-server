@@ -7,10 +7,10 @@ import postController from "./post.controller";
 
 const router = Router();
 
-router.post("/", Auth, Valid(CreatePostDto, RequestType.body), postController.createPost);
+router.post("/", Auth(), Valid(CreatePostDto, RequestType.body), postController.createPost);
 
 router.get("/:id", Valid(IdDto, RequestType.params), postController.getPostById);
 
-router.delete("/:id", Auth, Valid(IdDto, RequestType.params), postController.deletePost);
+router.delete("/:id", Auth(), Valid(IdDto, RequestType.params), postController.deletePost);
 
 export default router;

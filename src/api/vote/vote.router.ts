@@ -8,8 +8,8 @@ import voteMiddleware from "./vote.middleware";
 
 const router = Router();
 
-router.post("/", Auth, Valid(VoteDto, RequestType.body), voteMiddleware.createVote, voteController.createVote);
+router.post("/", Auth(), Valid(VoteDto, RequestType.body), voteMiddleware.createVote, voteController.createVote);
 
-router.post("/check", Auth, Valid(CheckVoteDto, RequestType.body), voteController.checkVote);
+router.post("/check", Auth(), Valid(CheckVoteDto, RequestType.body), voteController.checkVote);
 
 export default router;
