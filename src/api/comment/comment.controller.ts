@@ -1,6 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
+import { VoteAction } from "../../constant";
 import { ResponseBuilder } from "../../service";
+import { VoteCommentService } from "../voteComment/voteComment.service";
+import { IComment } from "./comment.model";
 import { CommentService } from "./comment.service";
 
 class CommentController {
@@ -59,12 +62,10 @@ class CommentController {
 
   async getComments(req: Request, res: Response, next: NextFunction) {
     try {
+      const { userId } = res.locals;
       const { page = 0, limit = 5, commentId, postId } = req.query;
-      console.log({
-        postId,
-        ...(commentId ? { _id: commentId, level: 1 } : { level: 0 }),
-      });
-      const comments = await CommentService.populate({
+
+      let comments = await CommentService.populate({
         query: {
           postId,
           ...(commentId ? { replyToCommentId: commentId, level: 1 } : { level: 0 }),
@@ -81,6 +82,34 @@ class CommentController {
           createdAt: -1,
         },
       });
+
+      const commentIds = comments.records.map((comment) => comment._id);
+
+      // The logged in user will check if the user has voted this comment
+      if (userId) {
+        const voteCommentsOfUser = await VoteCommentService.getByQuery({
+          query: {
+            userId,
+            commentId: {
+              $in: commentIds,
+            },
+          },
+          page: +page,
+          limit: +limit,
+        });
+
+        comments.records = comments.records.map((comment: IComment) => {
+          let mapComment: any;
+
+          voteCommentsOfUser.records.forEach((v) => {
+            if (String(comment._id) === String(v.commentId)) {
+              mapComment = { ...comment, vote: v.vote as VoteAction };
+            }
+          });
+
+          return mapComment ? mapComment : comment;
+        });
+      }
 
       return ResponseBuilder.send(res, {
         data: comments,

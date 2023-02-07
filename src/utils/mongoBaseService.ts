@@ -163,6 +163,7 @@ export class MongooseBaseService<IMongooseModel extends Document> {
         .sort(sort)
         .skip(page * limit)
         .limit(limit)
+        .lean()
         .exec(),
       this._mongooseModel.find(query).countDocuments(),
     ]);

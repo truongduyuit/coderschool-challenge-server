@@ -3,7 +3,7 @@ import { RecordStatus, VoteAction } from "../../constant";
 
 export interface IVoteComment extends Document {
   commentId: string;
-  postInfo: {
+  commentInfo: {
     _id: string;
     comment: string;
   };

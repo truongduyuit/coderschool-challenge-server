@@ -16,6 +16,6 @@ router.post(
   commentController.createComment,
 );
 
-router.get("/", Valid(GetCommentDto, RequestType.query), commentController.getComments);
+router.get("/", Auth(true), Valid(GetCommentDto, RequestType.query), commentController.getComments);
 
 export default router;

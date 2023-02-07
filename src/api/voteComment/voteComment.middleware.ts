@@ -10,7 +10,7 @@ class VoteCommentMiddleware {
     try {
       const comment = await CommentService.getOne({
         _id: commentId,
-        status: RecordStatus.active,
+        // status: RecordStatus.active,
       });
 
       if (!comment) {

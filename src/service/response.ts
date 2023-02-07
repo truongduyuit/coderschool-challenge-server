@@ -18,7 +18,7 @@ export class CustomError extends Error {
 
 export class ResponseBuilder {
   static send(res: Response, data: IData) {
-    Logger.getLogger(logResEnv as LOG_ENVIRONMENTS).info(data);
+    // Logger.getLogger(logResEnv as LOG_ENVIRONMENTS).info(data);
     return res.status(data.status || HTTP_CODE.Ok).json(data);
   }
 }

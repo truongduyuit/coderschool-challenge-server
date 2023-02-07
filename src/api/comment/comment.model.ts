@@ -1,4 +1,5 @@
 import { Document, Schema, model, Types } from "mongoose";
+import { VoteAction } from "../../constant";
 
 export interface IComment extends Document {
   postId: string;
@@ -18,6 +19,7 @@ export interface IComment extends Document {
   childCommentIds: string[];
   replyToInfo: {};
   level: number;
+  vote?: VoteAction;
 }
 
 const schema = new Schema(

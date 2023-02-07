@@ -31,24 +31,28 @@ export function Valid(dtoClass: any, requestType: RequestType, options: Validato
   };
 }
 
-export function Auth(req: Request, res: Response, next: NextFunction) {
-  const authorization = req.headers["authorization"] || "";
-  const headersToken = authorization.split(" ");
+export function Auth(notRequired?: boolean) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const authorization = req.headers["authorization"] || "";
+    const headersToken = authorization.split(" ");
 
-  if (headersToken[0] === "Bearer" && headersToken[1]) {
-    const match = jsonWebToken.verify(headersToken[1], process.env.JWT_SECRET || "") as any;
-    if (match) {
-      const { userId } = match;
+    if (headersToken[0] === "Bearer" && headersToken[1]) {
+      const match = jsonWebToken.verify(headersToken[1], process.env.JWT_SECRET || "") as any;
+      if (match) {
+        const { userId } = match;
 
-      // check user status or permissions in db if necessary
+        // check user status or permissions in db if necessary
 
-      res.locals.userId = userId;
-      return next();
+        res.locals.userId = userId;
+        return next();
+      }
     }
-  }
 
-  return ErrorBuilder.send(res, {
-    status: HTTP_CODE.Unauthorized,
-    code: ErrorCode.UNAUTHORIZED,
-  });
+    return notRequired
+      ? next()
+      : ErrorBuilder.send(res, {
+          status: HTTP_CODE.Unauthorized,
+          code: ErrorCode.UNAUTHORIZED,
+        });
+  };
 }
