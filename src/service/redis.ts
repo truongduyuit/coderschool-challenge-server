@@ -6,10 +6,12 @@ export class RedisService {
   private client: Redis;
 
   private constructor() {
-    this.client = new redis(+ConfigEnv.REDIS_PORT, ConfigEnv.REDIS_HOST, {
-      username: ConfigEnv.REDIS_USER,
-      password: ConfigEnv.REDIS_PASSWORD,
-    });
+    this.client = new redis(ConfigEnv.REDIS_CONNECTION_STRING);
+
+    // this.client = new redis(+ConfigEnv.REDIS_PORT, ConfigEnv.REDIS_HOST, {
+    //   username: ConfigEnv.REDIS_USER,
+    //   password: ConfigEnv.REDIS_PASSWORD,
+    // });
 
     this.client.on("connect", function () {
       console.log(`Connected to redis: ${ConfigEnv.REDIS_HOST}`);

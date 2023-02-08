@@ -3,9 +3,10 @@ import { ErrorCode, HTTP_CODE, RequestType } from "../constant";
 import { Request, Response, NextFunction } from "express";
 import { plainToInstance } from "class-transformer";
 import { ValidationError } from "class-validator/types/validation/ValidationError";
-import { ErrorBuilder } from "../service/response";
+import { CustomError, ErrorBuilder } from "../service/response";
 import jsonWebToken from "jsonwebtoken";
 import { Logger } from "../configs/logger/logger";
+import { UserService } from "./../api/user/user.service";
 
 export function Valid(dtoClass: any, requestType: RequestType, options: ValidatorOptions = {}) {
   return async function (req: Request, res: Response, next: NextFunction) {
@@ -32,27 +33,43 @@ export function Valid(dtoClass: any, requestType: RequestType, options: Validato
 }
 
 export function Auth(notRequired?: boolean) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     const authorization = req.headers["authorization"] || "";
     const headersToken = authorization.split(" ");
 
-    if (headersToken[0] === "Bearer" && headersToken[1]) {
-      const match = jsonWebToken.verify(headersToken[1], process.env.JWT_SECRET || "") as any;
-      if (match) {
-        const { userId } = match;
+    try {
+      if (headersToken[0] === "Bearer" && headersToken[1]) {
+        const match = jsonWebToken.verify(headersToken[1], process.env.JWT_SECRET || "") as any;
 
-        // check user status or permissions in db if necessary
+        if (match) {
+          const { userId, email } = match;
 
-        res.locals.userId = userId;
-        return next();
+          if (notRequired) {
+            res.locals.userId = userId;
+            return next();
+          }
+
+          const user = await UserService.getOne({
+            _id: userId,
+            email,
+          });
+
+          if (user) {
+            res.locals.userId = userId;
+            return next();
+          }
+        }
       }
-    }
 
-    return notRequired
-      ? next()
-      : ErrorBuilder.send(res, {
-          status: HTTP_CODE.Unauthorized,
-          code: ErrorCode.UNAUTHORIZED,
-        });
+      throw new CustomError({
+        code: ErrorCode.UNAUTHORIZED,
+        status: HTTP_CODE.Unauthorized,
+      });
+    } catch (error) {
+      return ErrorBuilder.send(res, {
+        status: HTTP_CODE.Unauthorized,
+        code: ErrorCode.UNAUTHORIZED,
+      });
+    }
   };
 }

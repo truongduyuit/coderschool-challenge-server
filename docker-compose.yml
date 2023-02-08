@@ -4,12 +4,56 @@ services:
   redis:
     container_name: redis_container
     image: redis
-    restart: always
     ports:
-      - '6379:6379'
+      - 6379:6379
     command: redis-server --requirepass IEPdpzFxQLHCe4V6rguh5K7bD9AGvXTJ
+    restart: always
     volumes: 
       - ./redis:/data
+    networks:
+      - coderschool-network
+
+  mongodb-primary:
+    container_name: mongodb-secondary
+    image: mongo:4.4
+    ports:
+      - 27017:27017
+    volumes:
+      - ./mongodb/primary:/data/db
+    command: mongod --replSet "rs0"
+    environment:
+      - MONGO_INITDB_REPLICASET=rs0
+    restart: always
+    networks:
+      - coderschool-network
+
+  mongodb-secondary-1:
+    container_name: mongodb-secondary-1
+    image: mongo:4.4
+    ports:
+      - 27018:27017
+    volumes:
+      - ./mongodb/secondary1:/data/db
+    command: mongod --replSet "rs0"
+    environment:
+      - MONGO_INITDB_REPLICASET=rs0
+    restart: always
+    networks:
+      - coderschool-network
+
+  mongodb-secondary-2:
+    container_name: mongodb-secondary-2
+    image: mongo:4.4
+    ports:
+      - 27019:27017
+    volumes:
+      - ./mongodb/secondary2:/data/db
+    command: mongod --replSet "rs0"
+    environment:
+      - MONGO_INITDB_REPLICASET=rs0
+    restart: always
+    networks:
+      - coderschool-network
 
   coderschool-server:
     build: .
@@ -17,21 +61,20 @@ services:
       - 1999:1999
     restart: always
     environment:
-      - PORT=1999
-      - HOST=localhost
-      - CONSOLE_LOG_LEVEL=OFF
-      - FILE_LOG_LEVEL=TRACE
-      - LOG_RESPONSE_ENV=default
-      - LOG_ERROR_ENV=file
-    networks:
-      - postgres_network
+      env_file: .env
     depends_on:
       - redis
-      - postgres
-
-networks:
-  postgres_network:
-    driver: bridge
+      - mongodb-primary
+      - mongodb-secondary-1
+      - mongodb-secondary-2
+    networks:
+      - coderschool-network
 
 volumes:
   redis:
+  mongodb-primary:
+  mongodb-secondary-1:
+  mongodb-secondary-2:
+networks:
+  coderschool-network:
+    driver: bridge

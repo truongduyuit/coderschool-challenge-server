@@ -14,7 +14,9 @@ class Mongoose {
         console.log(`Connect to db: ${ConfigEnv.MONGO_CONNECTION_STRING}`);
       })
       .catch((err: any) => {
-        console.log("MongoDB connection error. Please make sure MongoDB is running.\n" + err);
+        console.log(
+          `${ConfigEnv.MONGO_CONNECTION_STRING} MongoDB connection error. Please make sure MongoDB is running.\n` + err,
+        );
         process.exit(1);
       });
 
