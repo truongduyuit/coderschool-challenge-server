@@ -2,6 +2,24 @@
 
 Install [Docker](https://www.docker.com/) .
 
+Create .ENV file according to the structure of the file .env-example for environments...
+
+```sh
+HOST=localhost
+PORT=1999
+CONSOLE_LOG_LEVEL=OFF
+FILE_LOG_LEVEL=TRACE
+LOG_RESPONSE_ENV=default
+LOG_ERROR_ENV=file
+MONGO_CONNECTION_STRING=
+DB_USER=
+DB_PASS=
+REDIS_CONNECTION_STRING=
+JWT_SECRET=duycntduycnt
+ACCESS_TOKEN_EXPIRE=3d
+REFRESH_TOKEN_EXPIRE=7d
+```
+
 ```sh
 docker-compose up
 ```
