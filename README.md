@@ -1,4 +1,4 @@
-## Docker
+## Start with Docker
 
 Install [Docker](https://www.docker.com/) .
 
@@ -41,7 +41,7 @@ rs.initiate(config, { force: true });
 rs.status();
 ```
 
-## Installation
+## Start normal
 
 App requires [Node.js](https://nodejs.org/), [Redis](https://www.npmjs.com/package/redis), [MongoDb](https://www.mongodb.com/try/download/community) to run.
 
