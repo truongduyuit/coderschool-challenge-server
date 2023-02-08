@@ -10,7 +10,7 @@ const router = Router();
 
 router.post("/", Auth(), Valid(CreatePostDto, RequestType.body), postController.createPost);
 
-router.get("/", Valid(GetPostsDto, RequestType.query), postController.getPosts);
+router.get("/", Auth(true), Valid(GetPostsDto, RequestType.query), postController.getPosts);
 
 router.get("/:id", Valid(IdDto, RequestType.params), postController.getPostById);
 

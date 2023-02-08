@@ -1,10 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
 import { REDIS_TAGS_KEYS } from "../../configs";
-import { RecordStatus, SortType } from "../../constant";
+import { RecordStatus, SortType, VoteAction } from "../../constant";
 import { ResponseBuilder } from "../../service";
 import { RedisService } from "../../service/redis";
+import { mapArrayToObjectWithKey } from "../../utils";
+import { CommentService } from "../comment/comment.service";
 import { TagService } from "../tag/tag.service";
+import { IVote } from "../vote/vote.model";
+import { VoteService } from "../vote/vote.service";
 import { PostService } from "./post.service";
 
 class PostController {
@@ -99,6 +103,7 @@ class PostController {
 
   async getPosts(req: Request, res: Response, next: NextFunction) {
     try {
+      const { userId } = res.locals;
       const { page, limit, tags: tagsInput, sortType = SortType.latest } = req.query;
 
       const posts = await PostService.populate({
@@ -121,6 +126,77 @@ class PostController {
         },
         ...(page && { page: +page }),
         ...(limit && { limit: +limit }),
+      });
+
+      const postIds = posts.records.map((p) => p._id);
+
+      const promises: any[] = [
+        VoteService.aggregate([
+          {
+            $match: {
+              postId: { $in: postIds },
+              vote: { $in: [VoteAction.upvote, VoteAction.downvote] },
+            },
+          },
+          {
+            $group: {
+              _id: "$postId",
+              upvotes: {
+                $sum: {
+                  $cond: [{ $eq: ["$vote", VoteAction.upvote] }, 1, 0],
+                },
+              },
+              downvotes: {
+                $sum: {
+                  $cond: [{ $eq: ["$vote", VoteAction.downvote] }, 1, 0],
+                },
+              },
+            },
+          },
+        ]),
+        CommentService.aggregate([
+          {
+            $match: {
+              postId: { $in: postIds },
+            },
+          },
+          {
+            $group: {
+              _id: "$postId",
+              comments: { $sum: 1 },
+            },
+          },
+        ]),
+      ];
+
+      // The logged in user will check if the user has voted this comment
+      if (userId) {
+        promises.push(
+          VoteService.getByQuery({
+            query: {
+              userId,
+              postId: {
+                $in: postIds,
+              },
+            },
+            page: 0,
+            limit: postIds.length,
+          }),
+        );
+      }
+
+      const [voteInfos, commentCount, votePostOfUser] = await Promise.all(promises);
+      const objVoteInfo = mapArrayToObjectWithKey(voteInfos, "_id");
+      const objCommentCount = mapArrayToObjectWithKey(commentCount, "_id");
+      const objVotePostOfUser = votePostOfUser ? mapArrayToObjectWithKey(votePostOfUser.records, "postId") : {};
+
+      posts.records = posts.records.map((post) => {
+        return {
+          ...post,
+          ...objVoteInfo[post._id],
+          ...objCommentCount[post._id],
+          ...objVotePostOfUser[post._id],
+        };
       });
 
       return ResponseBuilder.send(res, {

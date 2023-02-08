@@ -1,5 +1,5 @@
 import { Document, Schema, model, Types } from "mongoose";
-import { RecordStatus } from "../../constant";
+import { RecordStatus, VoteAction } from "../../constant";
 
 export interface IPost extends Document {
   title: string;
@@ -10,6 +10,10 @@ export interface IPost extends Document {
     _id: string;
     email: string;
   };
+  vote?: VoteAction;
+  comments?: number;
+  upvotes?: number;
+  downvotes?: number;
   status: RecordStatus;
 }
 

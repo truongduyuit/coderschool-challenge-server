@@ -94,8 +94,8 @@ class CommentController {
               $in: commentIds,
             },
           },
-          page: +page,
-          limit: +limit,
+          page: 0,
+          limit: commentIds.length,
         });
 
         comments.records = comments.records.map((comment: IComment) => {
